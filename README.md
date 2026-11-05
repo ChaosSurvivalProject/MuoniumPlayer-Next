@@ -1,6 +1,8 @@
 # MuoniumPlayer-Next
 
-**纯客户端双端音乐播放器**：Java 版用 Fabric 客户端 Mod，基岩版用官方 Add-On。
+![MuoniumPlayer · 星穹旅驿官方出品](docs/assets/banner.png)
+
+**纯客户端双端音乐播放器 · 星穹旅驿官方出品**：Java 版用 Fabric 客户端 Mod，基岩版用官方 Add-On。
 两端各自读取本机曲库、各自在本机出声，**与服务器完全无关**。
 
 > 本项目是从零独立实现，仅以 [zihe114514/MuoniumPlayer](https://github.com/zihe114514/MuoniumPlayer)
