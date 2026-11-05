@@ -1,0 +1,26 @@
+bb38b4720b75899c46fe08459f37a9df8be3505a
+repo          : https://github.com/zihe114514/MuoniumPlayer
+branch        : main
+commit_date   : 2026-10-30T08:44:54Z
+commit_author : xinshibaobao
+commit_subject: Update README.md
+license_spdx  : NOASSERTION
+tree_entries  : 973 (809 blobs), truncated=false
+
+获取方式：
+  - `git clone https://github.com/zihe114514/MuoniumPlayer.git` 失败：
+    "Failed to connect to github.com port 443 after 132957 ms"。
+  - 改用 GitHub REST API（api.github.com 可达）：
+    GET /repos/zihe114514/MuoniumPlayer
+    GET /repos/zihe114514/MuoniumPlayer/commits?per_page=3
+    GET /repos/zihe114514/MuoniumPlayer/git/trees/main?recursive=1
+    GET /repos/zihe114514/MuoniumPlayer/git/blobs/{sha}（部分，触发匿名限流）
+  - codeload.github.com 归档限速中断，未完成；SHA 与文件清单以 API 为准。
+
+基线结论（真实，见 docs/source-audit.md）：
+  - 该仓库 README.md:4 明确声明「这条线（Minecraft 1.8.9 / Forge / Java 8）已经停止更新」，
+    新版本在另一个仓库，支持 1.20.1 / 1.21.1 / 1.21.11 / 26.2（Fabric + Forge/NeoForge）。
+  - 仓库根目录只有第三方许可文件（LICENSE-fml.txt、MinecraftForge-License.txt、
+    THIRD-PARTY-NOTICES-JAADEC.txt 等），没有项目自身的 LICENSE；
+    GitHub license.spdx_id = NOASSERTION。
+  - 因此本项目按「REFERENCE_ONLY / 独立实现」处理，不复制上游源码与素材。

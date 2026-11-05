@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "song_01JZ9Q7V3PC8N2M4A5B6C7D8E9",
+  "title": "示例歌曲",
+  "sortTitle": "示例歌曲",
+  "artists": [{ "id": "artist_0001", "name": "示例歌手" }],
+  "album": { "id": "album_0001", "name": "示例专辑" },
+  "durationMs": 214000,
+  "durationSource": "import_probe",
+  "source": {
+    "provider": "user_library",
+    "providerTrackId": "optional-stable-id",
+    "license": "user_provided",
+    "region": "unknown"
+  },
+  "assets": {
+    "audio": { "kind": "resource_sound_event", "ref": "muonium:track_0001" },
+    "cover": { "kind": "pack_texture", "ref": "textures/muonium/covers/track_0001" },
+    "lyric": { "kind": "pack_file", "ref": "lyrics/track_0001.muoni.json" }
+  },
+  "analysis": {
+    "loudnessLufs": -14.2,
+    "peakDbfs": -1.3,
+    "automix": { "enabled": false, "score": null }
+  },
+  "flags": {
+    "hasLyric": true,
+    "hasTranslation": false,
+    "explicit": false,
+    "playableOffline": true
+  },
+  "updatedAt": "2026-11-04T00:00:00+08:00"
+}

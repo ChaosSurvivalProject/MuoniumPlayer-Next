@@ -1,0 +1,33 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "MuoniumPlayer 行为包",
+    "description": "纯客户端曲库与表单控制。只向触发命令的玩家播放声音，不依赖服务端。",
+    "uuid": "5a1c0e30-4f2b-4c9a-9d71-1e2f3a4b5c60",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 130]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "5a1c0e30-4f2b-4c9a-9d71-1e2f3a4b5c61",
+      "version": [1, 0, 0]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "5a1c0e30-4f2b-4c9a-9d71-1e2f3a4b5c62",
+      "version": [1, 0, 0],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    { "uuid": "6b2d1f41-5a3c-4d0b-8e72-2f3a4b5c6d71", "version": [1, 0, 0] },
+    { "module_name": "@minecraft/server", "version": "2.4.0" },
+    { "module_name": "@minecraft/server-ui", "version": "2.0.0" }
+  ],
+  "metadata": {
+    "authors": ["MuoniumPlayer-Next contributors"],
+    "license": "MIT"
+  }
+}

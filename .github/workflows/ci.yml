@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  jvm:
+    name: JVM 构建 / 单元测试 / 纯客户端闸门
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: 构建与测试
+        run: ./gradlew clean build test checkClientOnly --no-daemon
+      - name: 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jvm-test-reports
+          path: |
+            common-core/build/reports/tests/test
+            music-import-cli/build/reports/tests/test
+
+  addon:
+    name: Bedrock Add-On 类型检查 / 打包 / 清单校验
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 安装依赖
+        run: npm ci
+        working-directory: bedrock-addon
+      - name: TypeScript strict 检查 + esbuild + node --check
+        run: npm run check
+        working-directory: bedrock-addon
+      - name: 清单 / 声音事件 / 曲库校验
+        run: |
+          node tools/check-manifests.mjs
+          node tools/check-sound-events.mjs
+          node tools/validate-library.mjs
+          node tools/generate-test-vectors.mjs
+      - name: 打包 .mcaddon
+        run: node tools/pack-addon.mjs
+      - name: 上传制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: muonium-bedrock-addon
+          path: bedrock-addon/dist/*.mcaddon
+
+  # Fabric Loom 构建需要下载 Minecraft 1.21.11 客户端与映射，且只能在真机验证启动。
+  # 默认不纳入 CI，避免把「无法验证」的任务伪装成通过；本地用 -PincludeFabric=true 显式执行。
+  fabric:
+    name: Fabric Loom 编译（可选，需上游资源）
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: 尝试 Loom 编译
+        run: ./gradlew -PincludeFabric=true :fabric-1_21_11:build --no-daemon
+        continue-on-error: true

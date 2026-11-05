@@ -1,0 +1,12 @@
+{
+  "_comment": "行为包声音元数据：只为脚本声音提供声明时长与音乐类别。与资源包 sound_definitions.json 用途不同，禁止合并。此文件是否被引擎读取取决于目标版本 API，见 docs/bedrock-capability-matrix.md。",
+  "format_version": "1.14.0",
+  "script_sound_metadata": {
+    "muonium:track_0001": {
+      "category": "music",
+      "declared_duration_ms": 5000,
+      "duration_source": "import_probe",
+      "supports_playback_position": false
+    }
+  }
+}

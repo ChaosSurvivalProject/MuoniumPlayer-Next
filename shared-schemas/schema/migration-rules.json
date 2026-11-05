@@ -1,0 +1,24 @@
+{
+  "$id": "https://muonium.invalid/schema/migration-rules.json",
+  "title": "跨端文件格式版本与迁移规则",
+  "current": {
+    "song": 1,
+    "playlist": 1,
+    "queue": 1,
+    "lyric": 1,
+    "config": 3,
+    "protocol": 1
+  },
+  "rules": [
+    { "from": 1, "to": 2, "target": "config", "action": "volume 由 0..100 改为 0..1；volumePercent 重命名为 volume" },
+    { "from": 2, "to": 3, "target": "config", "action": "删除 server*/sync*/room*/remote*/broadcast* 键；强制 clientOnly=true、telemetry=false、externalProcesses=false" },
+    { "from": 0, "to": 1, "target": "song", "action": "拒绝猜测：缺失 durationMs 保持 null 且 durationSource=unknown；不写入临时 URL" }
+  ],
+  "policy": {
+    "futureVersion": "reject",
+    "unknownLyricFormat": "mark_unsupported_keep_original",
+    "duplicateIds": "reject",
+    "tempUrlPersistence": "forbidden",
+    "credentialsInPack": "forbidden"
+  }
+}

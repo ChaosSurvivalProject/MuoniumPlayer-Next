@@ -1,0 +1,32 @@
+# 忽略
+.gradle/
+**/build/
+**/out/
+.idea/
+.vscode/
+*.class
+*.log
+.DS_Store
+
+# 上游参考仓库不纳入本仓库（审计结果已固化为 docs/source-audit.md）
+reference/
+
+# Node
+node_modules/
+bedrock-addon/dist/
+*.tsbuildinfo
+
+# 打包产物（由 tools/ 生成，不提交二进制大文件）
+*.mcaddon
+*.mcpack
+*.zip
+
+# 本地凭据 / 私有配置 —— 绝不入库
+**/credentials.json
+**/token*
+**/cookies*
+config/muonium/account.*
+
+# 允许提交的无版权测试素材
+!test-fixtures/audio/*.ogg
+!test-fixtures/covers/*.png

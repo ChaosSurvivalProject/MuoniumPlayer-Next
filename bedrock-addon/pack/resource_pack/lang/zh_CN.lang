@@ -1,0 +1,14 @@
+muonium.pack.name=MuoniumPlayer
+muonium.form.title=音乐播放器
+muonium.form.play=播放
+muonium.form.stop=停止
+muonium.form.next=下一首
+muonium.form.previous=上一首
+muonium.form.library=曲库
+muonium.form.settings=设置
+muonium.msg.no_track=曲库里没有这首歌
+muonium.msg.stopped=已停止播放
+muonium.msg.stop_limitation=当前版本无法中断已发出的声音；请等待音轨结束或重新进入世界
+muonium.msg.unsupported=此平台不支持该操作，已降级为停止
+muonium.msg.offline=曲库已预导入，断网也能播放
+muonium.msg.client_only=本播放器只在你本机播放，服务端不需要任何配套件

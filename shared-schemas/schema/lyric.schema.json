@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://muonium.invalid/schema/lyric.schema.json",
+  "title": "Unified Lyric Document",
+  "description": "支持逐行/逐字/翻译/对唱/空行/重复时间/未知结束时间。endMs 为 null 表示未知。",
+  "type": "object",
+  "required": ["schemaVersion", "songId", "lines", "unsupported"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1, "maximum": 1 },
+    "songId": { "type": "string" },
+    "durationMs": { "type": ["integer", "null"] },
+    "format": { "enum": ["lrc", "qrc", "yrc", "enhanced_lrc", "ttml", "krc", "unsupported"] },
+    "unsupported": { "type": "boolean", "description": "未知格式必须为 true 且 lines 为空，禁止猜测" },
+    "lines": { "type": "array", "maxItems": 100000,
+      "items": { "type": "object", "required": ["index", "startMs", "words"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "startMs": { "type": "integer", "minimum": 0 },
+          "endMs": { "type": ["integer", "null"] },
+          "speaker": { "enum": ["lead", "backing", "duet_a", "duet_b", "unknown"] },
+          "text": { "type": "string", "maxLength": 500 },
+          "translation": { "type": ["string", "null"], "maxLength": 500 },
+          "words": { "type": "array", "maxItems": 1000,
+            "items": { "type": "object", "required": ["text", "startMs"],
+              "properties": {
+                "text": { "type": "string", "maxLength": 500 },
+                "startMs": { "type": "integer", "minimum": 0 },
+                "endMs": { "type": ["integer", "null"] }
+              } } }
+        } } }
+  }
+}

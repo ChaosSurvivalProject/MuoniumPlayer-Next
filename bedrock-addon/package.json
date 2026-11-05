@@ -1,0 +1,20 @@
+{
+  "name": "muonium-bedrock-addon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minecraft Bedrock 1.21.130 官方 Add-On（纯客户端，不依赖服务端）",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build && node --check pack/behavior_pack/scripts/main.js",
+    "pack": "node ../tools/pack-addon.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@minecraft/server": "2.4.0",
+    "@minecraft/server-ui": "2.0.0",
+    "esbuild": "0.24.2",
+    "typescript": "5.7.3"
+  }
+}

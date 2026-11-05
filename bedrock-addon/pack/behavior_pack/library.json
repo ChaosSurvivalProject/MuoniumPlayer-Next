@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": 1,
+  "gameVersion": "1.21.130",
+  "tracks": [
+    {
+      "schemaVersion": 1,
+      "id": "track_0001",
+      "title": "示例音轨（无版权）",
+      "sortTitle": "示例音轨",
+      "artists": [{ "id": "artist_0001", "name": "程序化生成" }],
+      "album": { "id": "album_0001", "name": "测试素材" },
+      "durationMs": 5000,
+      "durationSource": "import_probe",
+      "source": {
+        "provider": "user_library",
+        "providerTrackId": "track_0001",
+        "license": "cc0",
+        "region": "unknown"
+      },
+      "assets": {
+        "audio": { "kind": "resource_sound_event", "ref": "muonium:track_0001" },
+        "cover": { "kind": "pack_texture", "ref": "textures/muonium/covers/track_0001" },
+        "lyric": { "kind": "pack_file", "ref": "lyrics/track_0001.muoni.json" }
+      },
+      "flags": {
+        "hasLyric": false,
+        "hasTranslation": false,
+        "explicit": false,
+        "playableOffline": true
+      },
+      "updatedAt": "2026-11-04T00:00:00+08:00"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "songId": "song_01JZ9Q7V3PC8N2M4A5B6C7D8E9",
+  "durationMs": 214000,
+  "format": "qrc",
+  "unsupported": false,
+  "lines": [
+    {
+      "index": 0,
+      "startMs": 10000,
+      "endMs": 13500,
+      "speaker": "lead",
+      "text": "第一句歌词",
+      "translation": "First lyric line",
+      "words": [
+        { "text": "第一句", "startMs": 10000, "endMs": 12800 },
+        { "text": "歌词", "startMs": 12800, "endMs": 13500 }
+      ]
+    }
+  ]
+}

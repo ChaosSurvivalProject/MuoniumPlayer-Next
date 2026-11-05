@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://muonium.invalid/schema/queue.schema.json",
+  "title": "Queue Snapshot",
+  "description": "运行时状态，不修改源歌单；刷新 UI 通过快照恢复，不得重排。",
+  "type": "object",
+  "required": ["mode", "repeat", "upcoming"],
+  "properties": {
+    "playingSongId": { "type": ["string", "null"] },
+    "played": { "type": "array", "items": { "type": "string" } },
+    "upcoming": { "type": "array", "items": { "type": "string" } },
+    "mode": { "enum": ["sequence", "shuffle"] },
+    "shuffleSeed": { "type": ["integer", "null"], "description": "可恢复的随机种子" },
+    "repeat": { "enum": ["none", "one", "list"] },
+    "autoplaySourcePlaylistId": { "type": ["string", "null"] }
+  }
+}

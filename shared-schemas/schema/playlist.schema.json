@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://muonium.invalid/schema/playlist.schema.json",
+  "title": "Playlist Document",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "items", "revision"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1, "maximum": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "name": { "type": "string", "maxLength": 200 },
+    "items": { "type": "array", "maxItems": 100000,
+      "items": { "type": "object", "required": ["songId"],
+        "properties": { "songId": { "type": "string" }, "addedAt": { "type": ["integer", "null"] } } } },
+    "revision": { "type": "integer", "minimum": 0 },
+    "updatedAt": { "type": ["string", "null"] }
+  }
+}

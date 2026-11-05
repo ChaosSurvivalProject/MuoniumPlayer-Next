@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://muonium.invalid/schema/song.schema.json",
+  "title": "Song",
+  "description": "跨端统一歌曲模型。null 表示未知，空集合表示明确没有，二者不可混淆。",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "durationSource", "flags"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1, "maximum": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "永久稳定 ID，禁止中文/大写/临时 URL" },
+    "title": { "type": "string", "maxLength": 500 },
+    "sortTitle": { "type": ["string", "null"], "maxLength": 500 },
+    "artists": {
+      "type": "array", "maxItems": 100,
+      "items": { "type": "object", "required": ["id", "name"],
+        "properties": { "id": { "type": "string" }, "name": { "type": "string" } } }
+    },
+    "album": { "type": ["object", "null"],
+      "properties": { "id": { "type": "string" }, "name": { "type": "string" } } },
+    "durationMs": { "type": ["integer", "null"], "minimum": 0,
+      "description": "null=未知；禁止用 0 表示未知" },
+    "durationSource": { "enum": ["import_probe", "provider_metadata", "user_declared", "unknown"] },
+    "source": { "type": ["object", "null"],
+      "properties": {
+        "provider": { "type": "string", "enum": ["user_library", "ncm", "qq", "kugou", "unknown"] },
+        "providerTrackId": { "type": ["string", "null"] },
+        "license": { "type": ["string", "null"], "description": "必须为可导入的授权标记" },
+        "region": { "type": ["string", "null"] }
+      } },
+    "assets": { "type": ["object", "null"],
+      "properties": {
+        "audio": { "$ref": "#/$defs/assetRef" },
+        "cover": { "$ref": "#/$defs/assetRef" },
+        "lyric": { "$ref": "#/$defs/assetRef" }
+      } },
+    "analysis": { "type": ["object", "null"],
+      "properties": {
+        "loudnessLufs": { "type": ["number", "null"] },
+        "peakDbfs": { "type": ["number", "null"] },
+        "automix": { "type": "object",
+          "properties": { "enabled": { "type": "boolean" }, "score": { "type": ["number", "null"] } } }
+      } },
+    "flags": { "type": "object", "required": ["hasLyric", "hasTranslation", "explicit", "playableOffline"],
+      "properties": {
+        "hasLyric": { "type": "boolean" }, "hasTranslation": { "type": "boolean" },
+        "explicit": { "type": "boolean" }, "playableOffline": { "type": "boolean" }
+      } },
+    "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "$defs": {
+    "assetRef": { "type": ["object", "null"], "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "enum": ["resource_sound_event", "pack_file", "pack_texture", "local_file"] },
+        "ref": { "type": "string", "maxLength": 512 }
+      } }
+  }
+}

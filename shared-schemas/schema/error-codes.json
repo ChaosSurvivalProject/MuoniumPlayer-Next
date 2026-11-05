@@ -1,0 +1,16 @@
+{
+  "$id": "https://muonium.invalid/schema/error-codes.json",
+  "title": "MuoniumPlayer 统一错误码",
+  "schemaVersion": 1,
+  "codes": [
+    "LIBRARY_TRACK_NOT_FOUND", "LIBRARY_AUDIO_MISSING", "LIBRARY_CORRUPTED",
+    "AUDIO_DECODE_UNSUPPORTED", "AUDIO_DEVICE_UNAVAILABLE", "AUDIO_BUFFER_UNDERRUN",
+    "AUDIO_BACKEND_LIMITATION", "LYRIC_PARSE_FAILED", "PROVIDER_LOGIN_EXPIRED",
+    "PROVIDER_RATE_LIMITED", "PROVIDER_TRACK_UNAVAILABLE", "PROVIDER_NETWORK_OFFLINE",
+    "LICENSE_NOT_PERMITTED", "PACK_VERSION_INCOMPATIBLE", "SYNC_PERMISSION_DENIED",
+    "INTERNAL_UNEXPECTED"
+  ],
+  "requiredFields": ["userMessage", "technicalDetail", "retryable", "suggestedAction",
+                     "sensitiveDataLeaked", "platform", "gameVersion", "packVersion", "protocolVersion"],
+  "sensitiveKeysFilteredInLogs": ["cookie", "authorization", "token", "qrkey", "unikey", "phone", "password"]
+}

@@ -1,0 +1,21 @@
+# 依赖锁定：全部来自 2026-11-04 对官方元数据的实际查询，来源见 docs/version-lock.md
+[versions]
+minecraft      = "1.21.11"
+yarn           = "1.21.11+build.6"
+fabric-loader  = "0.20.1"
+fabric-api     = "0.141.6+1.21.11"
+fabric-loom    = "1.17.21"
+junit          = "5.11.4"
+
+[libraries]
+junit-bom      = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter  = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+fabric-loader  = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+fabric-api     = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
+
+[bundles]
+junit = ["junit-jupiter", "junit-platform-launcher"]
+
+[plugins]
+fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }

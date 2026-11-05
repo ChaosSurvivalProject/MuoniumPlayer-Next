@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "muonium",
+  "version": "${version}",
+  "name": "MuoniumPlayer",
+  "description": "纯客户端本地音乐播放器。音乐在本机播放，服务端不需要安装任何东西。",
+  "authors": ["MuoniumPlayer-Next contributors"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.muonium.fabric.MuoniumClient"]
+  },
+  "depends": {
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabricloader": ">=0.20.1",
+    "fabric-api": "*"
+  },
+  "custom": {
+    "muonium:clientOnly": true,
+    "muonium:protocolVersion": 1,
+    "muonium:note": "不注册服务端命令、不发送自定义网络包、不要求资源包、不做跨玩家同步。"
+  }
+}
