@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-独立性声明：
-
-本项目是从零独立实现的纯客户端音乐播放器，仅以
-https://github.com/zihe114514/MuoniumPlayer （commit bb38b472…）作为
-「产品行为」的参考，未复制其 Java 源码、字体、图片、音频、歌词或二进制依赖。
-上游仓库 license.spdx_id = NOASSERTION 且根目录无项目自身 LICENSE，
-因此本项目不宣称是官方续作，也不宣称已获得原作者授权。
-第三方来源与许可状态见 THIRD_PARTY_NOTICES.md。
