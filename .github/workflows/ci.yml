@@ -69,3 +69,10 @@ jobs:
       - name: 尝试 Loom 编译
         run: ./gradlew -PincludeFabric=true :fabric-1_21_11:build --no-daemon
         continue-on-error: true
+      - name: 上传 Fabric jar 制品（可选）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: muonium-fabric-mod
+          path: fabric-1_21_11/build/libs/*.jar
+          if-no-files-found: ignore

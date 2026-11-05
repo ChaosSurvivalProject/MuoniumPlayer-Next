@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号（不含 v，如 0.1.0）'
+        required: true
+        default: '0.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  # JVM 测试闸门：纯 JVM 模块可完整构建与测试，作为发布前的硬性门槛。
+  verify:
+    name: JVM 测试闸门
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: chmod +x gradlew
+      - name: 构建 + 测试 + 纯客户端闸门
+        run: ./gradlew clean build test checkClientOnly --no-daemon
+
+  # Bedrock Add-On：静态校验 + 打包 .mcaddon。这是每次发布都必需的核心制品。
+  addon:
+    name: 构建 Bedrock .mcaddon
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 安装 Add-On 依赖
+        run: npm ci
+        working-directory: bedrock-addon
+      - name: 校验并打包 .mcaddon
+        run: node tools/pack-addon.mjs
+      - name: 上传 mcaddon 制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: muonium-bedrock-addon
+          path: bedrock-addon/dist/*.mcaddon
+
+  # Fabric Loom 编译需要下载 Minecraft 客户端与映射，且只能在真机验证启动。
+  # 上游资源/网络波动不应阻断 .mcaddon 的发布，故 continue-on-error。
+  fabric:
+    name: 构建 Fabric Mod jar（含 Loom）
+    needs: verify
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: chmod +x gradlew
+      - name: Loom 编译
+        run: ./gradlew -PincludeFabric=true :fabric-1_21_11:build --no-daemon
+      - name: 上传 Fabric jar 制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: muonium-fabric-mod
+          path: fabric-1_21_11/build/libs/*.jar
+
+  # 汇总制品并发布 GitHub Release，mcaddon 为必需附件，Fabric jar 若构建成功则一并附上。
+  release:
+    name: 发布 GitHub Release 并附加制品
+    needs: [addon, fabric]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 计算版本
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="v${{ github.event.inputs.version }}"
+            NAME="MuoniumPlayer-Next v${{ github.event.inputs.version }}"
+          else
+            TAG="${{ github.ref_name }}"
+            NAME="MuoniumPlayer-Next ${{ github.ref_name }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+      - name: 下载制品
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: 准备发布目录与校验和
+        run: |
+          mkdir -p release-assets
+          cp artifacts/muonium-bedrock-addon/*.mcaddon release-assets/ 2>/dev/null || true
+          cp artifacts/muonium-fabric-mod/*.jar release-assets/ 2>/dev/null || true
+          rm -f release-assets/*-sources.jar
+          ls -lh release-assets
+          cd release-assets && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.name }}
+          prerelease: true
+          generate_release_notes: true
+          files: release-assets/*

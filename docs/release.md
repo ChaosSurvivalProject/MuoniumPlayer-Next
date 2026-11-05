@@ -63,6 +63,9 @@
   未来版本高于当前支持版本时**拒绝猜测**并抛错，可回退到上一版包。
 - 基岩包 `version: [1,0,0]` 语义为「更高替换、相同或更低忽略」，回退请用更低版本号重新打包。
 - CI 制品可用校验和比对；不发布测试账号与私有接口。
+- **自动化发布**：打 `v*` 标签或手动触发 `.github/workflows/release.yml` 时，
+  自动构建并附加 `muonium-player.mcaddon`（**必需**）与 Fabric Mod jar（**可选**，Loom 拉取失败不阻断发布）到 GitHub Release，
+  同时附带 `SHA256SUMS` 校验和。发布前先过 JVM 测试闸门（`verify` 作业）。
 
 ## 7. 发布前清单
 
@@ -70,9 +73,9 @@
 - [x] 崩溃与日志上报开关（默认关）、隐私边界、数据清除与回滚说明
 - [x] `./gradlew clean build test checkClientOnly` 与 Add-On 构建在干净环境通过
 - [x] 上游许可证风险已记录、无大段复制
-- [ ] **真机兼容矩阵、测试日志与已知限制已提交** ← 需用户提供 Windows Java / Windows Bedrock / Android Bedrock
+- [ ] **真机兼容矩阵、测试日志已提交**：按 [真机测试指南](real-device-testing.md) 逐项验收（需用户提供 Windows Java / Windows Bedrock / Android Bedrock）
 - [ ] Windows/Android 真机导入、第三方服务器联机、维度切换、2 小时连续播放
-- [ ] 制品签名 / 校验和（阶段 8）
+- [x] 制品签名 / 校验和（Release 自动生成 `SHA256SUMS`；代码签名留待阶段 8）
 
 ## 8. 隐私政策要点
 
