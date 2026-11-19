@@ -36,7 +36,7 @@ docs/               审计、版本锁定、能力矩阵、协议、安全、测
 ## 快速开始
 
 ```bash
-# 1) JVM：构建 + 96 个单元测试 + 纯客户端闸门
+# 1) JVM：构建 + 107 个单元测试 + 纯客户端闸门
 ./gradlew clean build test checkClientOnly
 
 # 2) Bedrock：类型检查 + 打包 + 语法校验
@@ -70,7 +70,7 @@ Fabric 模块默认不纳入 `./gradlew build`——Loom 需下载 Minecraft 客
 |---|---|
 | 上游审计 / 许可证风险 / commit 基线 | ✅ 真实完成，见 [docs/source-audit.md](docs/source-audit.md) |
 | 多模块仓库、依赖版本锁定 | ✅ 真实完成，见 [docs/version-lock.md](docs/version-lock.md) |
-| `common-core` 模型 / 状态机 / 队列 / 歌词 / 缓存 / 配置迁移 | ✅ 实现且 **96 个 JVM 测试全部通过** |
+| `common-core` 模型 / 状态机 / 队列 / 歌词 / 缓存 / 配置迁移 | ✅ 实现且 **107 个 JVM 测试全部通过**（含深度审查回归测试） |
 | `music-providers` QQ 音乐源 + 降级清理 | ✅ 实现且 **25 个测试全部通过**（个人使用，非官方），见 [docs/qq-music.md](docs/qq-music.md) |
 | Fabric 空客户端 Mod + 本地曲库 + 假音频后端 + 控制器 | ✅ 源码完整，**Loom 编译通过**（BUILD SUCCESSFUL），启动/进世界仍需真机验证 |
 | Bedrock 空 BP/RP + 声音事件 + 表单 UI + 曲库 MVP | ✅ `tsc --strict` / esbuild / `node --check` / 清单校验全部通过 |

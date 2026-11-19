@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,6 +42,31 @@ class EventBusTest {
         bus.close();
         assertEquals(0, bus.subscriberCount("a"));
         assertThrows(IllegalStateException.class, () -> bus.on("a", String.class, s -> {}));
+    }
+
+    @Test
+    void concurrentSubscribeAndEmitAreThreadSafe() throws Exception {
+        var bus = new EventBus();
+        AtomicInteger received = new AtomicInteger();
+        int threads = 8, perThread = 200;
+        CountDownLatch start = new CountDownLatch(1);
+        List<Thread> workers = new ArrayList<>();
+        for (int t = 0; t < threads; t++) {
+            Thread w = new Thread(() -> {
+                try { start.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
+                for (int i = 0; i < perThread; i++) {
+                    bus.on("c", Integer.class, v -> received.incrementAndGet());
+                    bus.emit("c", i);
+                }
+            });
+            workers.add(w);
+            w.start();
+        }
+        start.countDown();
+        for (Thread w : workers) w.join(10_000);
+        for (Thread w : workers) assertFalse(w.isAlive(), "并发订阅/发布线程必须在时限内结束");
+        assertEquals(threads * perThread, bus.subscriberCount("c"));
+        bus.close();
     }
 
     @Test

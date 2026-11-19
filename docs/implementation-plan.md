@@ -21,7 +21,7 @@
 Song/Playlist/Queue/Lyric 模型、JSON Schema 与迁移、9 态状态机、
 顺序/随机/循环/历史、歌词游标（O(log n)）、虚拟时钟、假音频后端、
 安全 JSON、缓存淘汰、重试退避、事件总线、错误模型。
-**common-core 60 个 JVM 测试全部通过，不启动 Minecraft**（全仓含 providers/CLI 共 96 个）。
+**common-core 71 个 JVM 测试全部通过，不启动 Minecraft**（全仓含 providers/CLI 共 107 个）。
 
 ## 阶段 2：Fabric 本地音频 MVP — ⚠️ 部分（代码骨架，真机未验证）
 

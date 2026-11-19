@@ -36,10 +36,23 @@ public final class MuoniumError {
         public boolean retryable() { return retryable; }
     }
 
-    /** 敏感信息字段名：日志脱敏必须过滤这些键。 */
+    /** 敏感信息字段名：日志脱敏必须过滤这些键（含 QQ 音乐会话密钥）。 */
     public static final String[] SENSITIVE_KEYS = {
-            "cookie", "authorization", "token", "qrkey", "unikey", "phone", "password", "set-cookie"
+            "set-cookie", "cookie", "authorization", "token", "qrkey", "unikey",
+            "qm_key", "skey", "pskey", "phone", "password"
     };
+
+    /** 由 SENSITIVE_KEYS 生成正则alternation，避免手写漂移。 */
+    private static final String KEY_PATTERN = buildKeyPattern();
+
+    private static String buildKeyPattern() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < SENSITIVE_KEYS.length; i++) {
+            if (i > 0) sb.append('|');
+            sb.append(java.util.regex.Pattern.quote(SENSITIVE_KEYS[i]));
+        }
+        return sb.toString();
+    }
 
     public record Detail(Code code, String userMessage, String technicalDetail,
                          boolean retryable, String suggestedAction,
@@ -74,14 +87,32 @@ public final class MuoniumError {
         }
     }
 
-    /** 简单脱敏：把 Cookie=... / token=... 之类替换为 <redacted>。 */
+    /**
+     * 日志脱敏：把凭据字段的值整体替换为 {@code <redacted>}。
+     *
+     * <p>修复要点（原实现的真实漏洞）：原正则用 {@code [^\s,;]+} 在分号处停止，
+     * 导致 {@code Cookie: uin=1; qm_key=SECRET; skey=XXX} 中分号后的核心密钥全部明文泄露；
+     * 且 JSON 形式 {@code {"cookie":"SECRET"}} 完全不匹配。本实现覆盖三种形态：
+     * <ol>
+     *   <li>JSON 键值：{@code "cookie":"value"}；</li>
+     *   <li>等号/冒号且值可含分号：{@code key=value; other=...} —— 一直吃到空白/引号/JSON 边界；</li>
+     *   <li>HTTP 头整行：{@code Cookie: a=1; b=2} —— 吃掉到行尾。</li>
+     * </ol>
+     * 只做替换，不回显原值；对 null 返回空串。
+     */
     public static String redact(String input) {
         if (input == null) return "";
         String s = input;
-        for (String key : SENSITIVE_KEYS) {
-            s = s.replaceAll("(?i)" + java.util.regex.Pattern.quote(key) + "\\s*[=:]\\s*[^\\s,;]+",
-                    key + "=<redacted>");
-        }
+        // 1) JSON 键值："key" : "value"
+        s = s.replaceAll("(?i)(\"(?:" + KEY_PATTERN + ")\"\\s*:\\s*)\"(?:[^\"\\\\]|\\\\.)*\"",
+                "$1\"<redacted>\"");
+        // 2) HTTP 头整行：Cookie / Authorization / Set-Cookie 后到行尾
+        s = s.replaceAll("(?i)\\b(cookie|set-cookie|authorization|token|qrkey|unikey|qm_key|skey|pskey|phone|password)"
+                        + "\\s*:\\s*[^\\r\\n]*",
+                "$1: <redacted>");
+        // 3) 等号形式：key=value; other=value（值可含分号，吃到空白或 JSON 边界）
+        s = s.replaceAll("(?i)\\b(" + KEY_PATTERN + ")\\s*=\\s*[^\\s,}\\]\\\"]+",
+                "$1=<redacted>");
         return s;
     }
 }

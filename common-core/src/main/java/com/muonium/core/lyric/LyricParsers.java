@@ -223,16 +223,35 @@ public final class LyricParsers {
         };
     }
 
-    /** 支持 mm:ss.mmm / hh:mm:ss.mmm / Ns / Nms。 */
+    /**
+     * 支持 mm:ss.mmm / hh:mm:ss.mmm / Ns / Nms。
+     * 非法值（如 begin="abc"、NaN、空段）不得抛异常：歌词解析对损坏输入必须降级而非崩溃。
+     * 无法解析时返回 0，由 Normalizer 的倒退/重复修正逻辑兜底。
+     */
     static long parseClock(String v) {
         if (v == null || v.isBlank()) return 0L;
         String s = v.trim();
-        if (s.endsWith("ms")) return (long) Double.parseDouble(s.substring(0, s.length() - 2));
-        if (s.endsWith("s")) return (long) (Double.parseDouble(s.substring(0, s.length() - 1)) * 1000);
-        String[] parts = s.split(":");
-        double sec = 0;
-        for (String part : parts) sec = sec * 60 + Double.parseDouble(part);
-        return (long) (sec * 1000);
+        try {
+            if (s.endsWith("ms")) {
+                double d = Double.parseDouble(s.substring(0, s.length() - 2));
+                return Double.isFinite(d) && d >= 0 ? (long) d : 0L;
+            }
+            if (s.endsWith("s")) {
+                double d = Double.parseDouble(s.substring(0, s.length() - 1));
+                return Double.isFinite(d) && d >= 0 ? (long) (d * 1000) : 0L;
+            }
+            String[] parts = s.split(":");
+            double sec = 0;
+            for (String part : parts) {
+                if (part.isBlank()) return 0L;
+                double seg = Double.parseDouble(part);
+                if (!Double.isFinite(seg)) return 0L;
+                sec = sec * 60 + seg;
+            }
+            return sec >= 0 ? (long) (sec * 1000) : 0L;
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     private static long clockToMs(String mm, String ss, String frac) {
@@ -262,7 +281,19 @@ public final class LyricParsers {
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             String g = m.group(1);
-            int cp = g.startsWith("x") ? Integer.parseInt(g.substring(1), 16) : Integer.parseInt(g);
+            int cp;
+            try {
+                cp = g.startsWith("x") ? Integer.parseInt(g.substring(1), 16) : Integer.parseInt(g);
+            } catch (NumberFormatException e) {
+                // 超出 int 的巨大实体：保留原文，不崩溃
+                m.appendReplacement(sb, Matcher.quoteReplacement(m.group(0)));
+                continue;
+            }
+            // 非法码点（>0x10FFFF 或代理区）不得让 Character.toChars 抛异常；原样保留该实体。
+            if (!Character.isValidCodePoint(cp) || (cp >= Character.MIN_SURROGATE && cp <= Character.MAX_SURROGATE)) {
+                m.appendReplacement(sb, Matcher.quoteReplacement(m.group(0)));
+                continue;
+            }
             m.appendReplacement(sb, Matcher.quoteReplacement(new String(Character.toChars(cp))));
         }
         m.appendTail(sb);

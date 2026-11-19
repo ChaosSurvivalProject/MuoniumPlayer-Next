@@ -46,7 +46,10 @@ export class PlayQueue {
   }
 
   static restore(s: QueueSnapshot): PlayQueue {
-    const q = new PlayQueue([], s.mode, s.repeat, s.shuffleSeed);
+    // 修复：恢复时必须重建 base，否则 repeat="list" 在 upcoming 耗尽后
+    // 因 base 为空无法回卷，队列提前停住（与 Java common-core 保持同一契约）。
+    const restored = [...new Set([...s.played, ...(s.playingId ? [s.playingId] : []), ...s.upcoming])];
+    const q = new PlayQueue(restored, s.mode, s.repeat, s.shuffleSeed);
     q.upcoming = [...s.upcoming];
     q.played = [...s.played];
     q.currentId = s.playingId;
@@ -87,8 +90,11 @@ export class PlayQueue {
     this.mode = mode;
     if (mode === "shuffle") this.upcoming = shuffle(this.upcoming, (this.shuffleSeed ?? 1) ^ 0x5deece66);
     else {
-      const ordered = this.base.filter((id) => this.upcoming.includes(id));
-      for (const id of this.upcoming) if (!ordered.includes(id)) ordered.push(id);
+      // 用 Set 做 O(1) 成员判断，避免 includes 嵌套的 O(n²)。
+      const pending = new Set(this.upcoming);
+      const ordered: string[] = [];
+      for (const id of this.base) if (pending.delete(id)) ordered.push(id);
+      for (const id of pending) ordered.push(id);
       this.upcoming = ordered;
     }
   }

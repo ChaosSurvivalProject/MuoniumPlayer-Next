@@ -130,7 +130,8 @@ var PlayQueue = class _PlayQueue {
     this.upcoming = mode === "shuffle" ? shuffle(this.base, seed ?? 1) : [...this.base];
   }
   static restore(s) {
-    const q = new _PlayQueue([], s.mode, s.repeat, s.shuffleSeed);
+    const restored = [.../* @__PURE__ */ new Set([...s.played, ...s.playingId ? [s.playingId] : [], ...s.upcoming])];
+    const q = new _PlayQueue(restored, s.mode, s.repeat, s.shuffleSeed);
     q.upcoming = [...s.upcoming];
     q.played = [...s.played];
     q.currentId = s.playingId;
@@ -167,8 +168,10 @@ var PlayQueue = class _PlayQueue {
     this.mode = mode;
     if (mode === "shuffle") this.upcoming = shuffle(this.upcoming, (this.shuffleSeed ?? 1) ^ 1575931494);
     else {
-      const ordered = this.base.filter((id) => this.upcoming.includes(id));
-      for (const id of this.upcoming) if (!ordered.includes(id)) ordered.push(id);
+      const pending = new Set(this.upcoming);
+      const ordered = [];
+      for (const id of this.base) if (pending.delete(id)) ordered.push(id);
+      for (const id of pending) ordered.push(id);
       this.upcoming = ordered;
     }
   }

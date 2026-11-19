@@ -1,9 +1,9 @@
 package com.muonium.core.event;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
@@ -16,6 +16,8 @@ public final class EventBus implements AutoCloseable {
         @Override public void close() { cancel.run(); }
     }
 
+    // 用 CopyOnWriteArrayList：订阅/取消与 emit 可能跨线程（渲染线程 emit、配置线程订阅），
+    // 普通 ArrayList 在 computeIfAbsent().add() 并发时会破坏内部结构并触发 ConcurrentModificationException。
     private final Map<String, List<Consumer<Object>>> handlers = new ConcurrentHashMap<>();
     private volatile boolean closed;
 
@@ -24,13 +26,14 @@ public final class EventBus implements AutoCloseable {
         Consumer<Object> boxed = payload -> {
             if (payload == null || type.isInstance(payload)) handler.accept(type.cast(payload));
         };
-        handlers.computeIfAbsent(topic, k -> new ArrayList<>()).add(boxed);
+        handlers.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>()).add(boxed);
         return new Subscription(topic, () -> handlers.getOrDefault(topic, List.of()).remove(boxed));
     }
 
     public <T> void emit(String topic, T payload) {
         if (closed) return;
-        for (Consumer<Object> h : new ArrayList<>(handlers.getOrDefault(topic, List.of()))) {
+        // CopyOnWriteArrayList 自身可安全迭代；无需再复制一层。
+        for (Consumer<Object> h : handlers.getOrDefault(topic, List.of())) {
             h.accept(payload);
         }
     }

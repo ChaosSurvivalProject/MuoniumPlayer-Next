@@ -217,7 +217,13 @@ public final class Json {
                         case 't' -> sb.append('\t');
                         case 'u' -> {
                             if (p + 4 > s.length()) throw error("Bad unicode escape");
-                            sb.append((char) Integer.parseInt(s.substring(p, p + 4), 16));
+                            int cp;
+                            try {
+                                cp = Integer.parseInt(s.substring(p, p + 4), 16);
+                            } catch (NumberFormatException ex) {
+                                throw error("Bad unicode escape at " + (p - 1));
+                            }
+                            sb.append((char) cp);
                             p += 4;
                         }
                         default -> throw error("Invalid escape \\" + e);

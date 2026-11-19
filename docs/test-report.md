@@ -1,6 +1,6 @@
 # 测试报告
 
-报告时间：2026-11-05（CST）
+报告时间：2026-11-05（CST），2026-11-20 深度审查补充（见 §6 第 12–17 项）
 环境：Ubuntu 24.04 / Linux amd64，**无 Minecraft 客户端、无 GUI、无 Windows/Android 设备**
 
 > 本报告只记录**真实执行过**的命令与结果。
@@ -23,15 +23,15 @@ export GRADLE_USER_HOME=/root/.gradle
 | 8.14.3 | `BUILD SUCCESSFUL`（中间修过 2 个真实错误，见 §6） |
 | **9.8.0（最终锁定）** | `BUILD SUCCESSFUL in 31s`，`checkClientOnly PASS` |
 
-**单元测试：96 个，0 失败，0 跳过**（从 `build/test-results/test/TEST-*.xml` 精确统计）：
+**单元测试：107 个，0 失败，0 跳过**（从 `build/test-results/test/TEST-*.xml` 精确统计）：
 
 | 模块 | 数量 | 说明 |
 |---|---|---|
-| `common-core` | 60 | 见下表 |
+| `common-core` | 71 | 见下表（含 11 个深度审查回归测试） |
 | `music-import-cli` | 11 | `ImportCliTest` |
 | `music-providers` | 25 | QQ 音乐源 + 降级/清理（见 §1.1） |
 
-其中 `common-core` 的 60 个：
+其中 `common-core` 的 71 个：
 
 | 测试类 | 数量 | 覆盖 |
 |---|---|---|
@@ -45,7 +45,8 @@ export GRADLE_USER_HOME=/root/.gradle
 | `ConfigMigratorTest` | 5 | v1→v3 迁移、默认 clientOnly、未来版本拒绝 |
 | `CachePoliciesTest` | 4 | LRU 淘汰、缓存键确定性、重试退避上限 |
 | `SchemaCompatibilityTest` | 6 | Song/Playlist/Lyric JSON 往返、null 语义、资源名规则 |
-| `EventBusTest` | 4 | 订阅/取消/关闭、类型过滤、日志脱敏 |
+| `EventBusTest` | 5 | 订阅/取消/关闭、类型过滤、日志脱敏、并发订阅/发布线程安全 |
+| `RegressionTest` | 10 | 深度审查确认的 bug 回归：凭据脱敏（分号/JSON/等号/普通词边界）、volume=1、快照 LIST 循环、非法时钟/Unicode 实体不崩溃（见 §6） |
 | `ImportCliTest` | 11 | 重复 ID/声音事件、路径穿越、凭据、临时 URL、许可证、CLI 真实文件 |
 
 ### 1.1 QQ 音乐适配层测试（`music-providers`，25 个全绿）
@@ -137,6 +138,21 @@ cd bedrock-addon && npm ci && npm run check && cd ..
 | 9 | 完整构建默认用 Java 20 JVM，Loom 1.17.21 要求 ≥21 而失败 | 显式 `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64` 后 BUILD SUCCESSFUL |
 | 10 | 默认 `java`/`cd` 在后台命令中不跨调用保持 | 每条命令内显式 `cd` 与 `export JAVA_HOME/PATH` |
 | 11 | `DegradationTest` 缺 `Song` import、`FakeAudioBackend` 为 final 无法匿名继承 | 补 import；给 Fake 加 `rejectPrepare` 标志而非继承 |
+
+### 6.1 深度审查确认并修复的真实 bug（2026-11-20）
+
+以下 bug 均由临时探针测试**实测复现**后修复，并补 `RegressionTest`（10 个）+ `EventBusTest` 并发测试（1 个）回归保护：
+
+| # | bug（复现证据） | 修复 | 回归测试 |
+|---|---|---|---|
+| 12 | **凭据脱敏失效（严重）**：`Cookie: uin=1; qm_key=SECRET; skey=ABC` 中分号后的核心密钥明文泄露；JSON `{"cookie":"SECRET"}` 完全不匹配 | `MuoniumError.redact()` 重写：覆盖 JSON 键值、HTTP 头整行、等号形式（值含分号吃到边界）；敏感键补 `qm_key/skey/pskey`；`KEY_PATTERN` 由数组生成防漂移 | `redactCovers*`、`redactDoesNotOverMatchCommonWords` |
+| 13 | **配置迁移音量错误**：v1 的 `volumePercent=1`（1%）被旧判定 `vol>1.0` 漏掉，错迁为 `1.0`（100%） | v1 百分比一律除以 100 再 clamp 到 0..1 | `volumePercentOneMigratesToPointZeroOne`、`volumePercentZeroAndHundredAreClamped` |
+| 14 | **队列快照恢复后 LIST 循环失效**：fresh 队列 a→b→a→b，restore 后 `next()` 返回 null（baseOrder/base 为空无法回卷） | Java `PlayQueue.restore` 与 Bedrock `PlayQueue.restore` 均由 played+current+upcoming 重建 baseOrder/base | `restoredQueueKeepsListRepeat` |
+| 15 | **TTML 非法时钟崩溃**：`begin="abc"` 抛 `NumberFormatException` 未捕获 | `LyricParsers.parseClock`  fail-safe，非法返回 0 由 Normalizer 兜底 | `badTtmlClockDoesNotThrow` |
+| 16 | **歌词非法 Unicode 实体崩溃**：`&#x110000;` 触发 `Character.toChars` 抛 `IllegalArgumentException` | `decodeEntities` 校验码点合法性，非法/代理区原样保留 | `illegalUnicodeEntityDoesNotThrow`、`surrogateEntityDoesNotThrow` |
+| 17 | **EventBus 并发隐患**：`ConcurrentHashMap` 的 value 用普通 `ArrayList`，多线程 `on()` 会破坏结构 | 改用 `CopyOnWriteArrayList`；`emit` 直接迭代无需复制 | `concurrentSubscribeAndEmitAreThreadSafe`（8 线程×200 次） |
+| 18 | **JSON 非法 `\u` 转义抛裸异常**：`\uZZZZ` 抛 `NumberFormatException` 而非统一 parse 错误 | `Json.parseString` 捕获并转 `IllegalArgumentException("JSON parse error…")` | `JsonSafetyTest`（既有断言仍通过） |
+| 19 | **队列切换顺序 O(n²)**：`setMode` 用 `upcoming.contains()` 嵌套，大歌单性能退化 | Java 用 `LinkedHashSet`、Bedrock 用 `Set` 做 O(1) 成员判断 | `ShuffleDeterminismTest`（既有）+ typecheck |
 
 ## 7. 未验证项（真实清单，禁止写成通过）
 

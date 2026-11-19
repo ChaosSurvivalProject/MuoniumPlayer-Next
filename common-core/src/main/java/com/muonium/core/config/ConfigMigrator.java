@@ -27,8 +27,9 @@ public final class ConfigMigrator {
             // v1 -> v2: volume 由 0..100 百分比改为 0..1 浮点；旧键重命名
             Object pct = m.containsKey("volumePercent") ? m.get("volumePercent") : m.get("volume");
             if (pct instanceof Number n) {
-                double vol = n.doubleValue();
-                if (vol > 1.0) vol = vol / 100.0;
+                // v1 的 volumePercent / volume 一律是 0..100 百分比；即使值为 1（1%）也必须除以 100。
+                // 原实现用 `vol > 1.0` 判定，导致 1 被当成已是 0..1 而错误保留为 1.0（100%）。
+                double vol = n.doubleValue() / 100.0;
                 m.put("volume", Math.max(0.0, Math.min(1.0, vol)));
             } else {
                 m.put("volume", 0.8);

@@ -53,7 +53,13 @@ public final class PlayQueue {
     }
 
     private PlayQueue(Playlist.QueueSnapshot s, Ports.RandomSource random) {
-        this.baseOrder = List.of();
+        // 修复：快照恢复必须重建 baseOrder，否则 LIST 循环在 upcoming 耗尽后
+        // 因 baseOrder 为空而无法回卷，队列提前停住（fresh 队列可循环、restore 后不循环）。
+        LinkedHashSet<String> restored = new LinkedHashSet<>();
+        restored.addAll(s.played());
+        if (s.playingSongId() != null) restored.add(s.playingSongId());
+        restored.addAll(s.upcoming());
+        this.baseOrder = List.copyOf(restored);
         this.upcoming.addAll(s.upcoming());
         this.played.addAll(s.played());
         this.currentId = s.playingSongId();
@@ -119,9 +125,11 @@ public final class PlayQueue {
             upcoming.clear();
             upcoming.addAll(shuffled);
         } else {
+            // 用 LinkedHashSet 做 O(1) 成员判断并保序，避免原实现 upcoming.contains() 的 O(n²)。
+            java.util.LinkedHashSet<String> pending = new java.util.LinkedHashSet<>(upcoming);
             List<String> byBase = new ArrayList<>();
-            for (String id : baseOrder) if (upcoming.contains(id)) byBase.add(id);
-            for (String id : upcoming) if (!byBase.contains(id)) byBase.add(id);
+            for (String id : baseOrder) if (pending.remove(id)) byBase.add(id);
+            byBase.addAll(pending); // 剩余为不在 baseOrder 中的项，保持原相对顺序
             upcoming.clear();
             upcoming.addAll(byBase);
         }
