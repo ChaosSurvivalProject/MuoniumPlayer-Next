@@ -79,6 +79,7 @@ node tools/pack-addon.mjs
 
 - 进入世界后会收到欢迎消息：`[MuoniumPlayer] 输入 /scriptevent muonium:open 打开音乐播放器（纯客户端，断网可播）`。
 - 在聊天输入 **`/scriptevent muonium:open`** 打开官方表单播放器。
+- 输入 **`/scriptevent muonium:qq`** 打开 QQ 音乐导入表单：填 songmid 后应暂存并给出桌面端 `qqimport` 命令；基岩端不应发起任何网络请求。详见 [qq-music.md](qq-music.md)。
 - 先用隔离世界验证自定义声音事件：`/playsound muonium:track_0001`（命名空间 `muonium:`、事件名 `track_0001` 需在资源包的 `sound_definitions.json` 中声明）。
 
 > 触发方式说明：经核实 `@minecraft/server 2.4.0` 类型中**不存在 `chatSend`**（官方文档示例与类型定义不一致），
@@ -90,6 +91,7 @@ node tools/pack-addon.mjs
 - [ ] 世界启用后无内容日志告警
 - [ ] `/playsound muonium:track_0001` **能听到声音**（首要故障点：事件命名空间、分隔符、缓存重载）
 - [ ] `/scriptevent muonium:open` 弹出官方表单 UI
+- [ ] `/scriptevent muonium:qq` 弹出导入表单，提交 songmid 后给出桌面导入命令且不联网
 - [ ] 选择曲目播放，**仅触发者本人可听**（他人不应听到——验证不加他人）
 - [ ] 「停止」生效；`/stopsound` 不能中断时明确提示而非假装已停
 - [ ] 重进世界后设置保留（动态属性持久化）

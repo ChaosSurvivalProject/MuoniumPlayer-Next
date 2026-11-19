@@ -1,5 +1,5 @@
 // src/main.ts
-import { world as world2, system, Player } from "@minecraft/server";
+import { world as world3, system, Player } from "@minecraft/server";
 
 // pack/behavior_pack/library.json
 var library_default = {
@@ -248,7 +248,8 @@ function saveSettings(s) {
 }
 
 // src/ui.ts
-import { ActionFormData } from "@minecraft/server-ui";
+import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
+import { world as world2 } from "@minecraft/server";
 
 // src/errors.ts
 var MESSAGES = {
@@ -424,6 +425,7 @@ ${progressView(current).label}
   form.button(`\u64AD\u653E\u6A21\u5F0F\uFF1A${session.settings.mode === "shuffle" ? "\u968F\u673A" : "\u987A\u5E8F"}`);
   form.button(`\u5FAA\u73AF\uFF1A${repeatLabel(session.settings.repeat)}`);
   form.button(`\u97F3\u91CF\uFF1A${Math.round(session.settings.volume * 100)}%`);
+  form.button("\u5BFC\u5165 QQ \u97F3\u4E50");
   form.button("\u5173\u4E8E / \u80FD\u529B\u8BF4\u660E");
   form.show(player).then((response) => {
     if (response.canceled) return;
@@ -460,7 +462,10 @@ ${progressView(current).label}
       case 7 /* VOLUME */:
         showVolumeForm(player, ctx2);
         break;
-      case 8 /* INFO */:
+      case 8 /* QQ */:
+        showQQForm(player);
+        break;
+      case 9 /* INFO */:
         showInfoForm(player);
         break;
       default:
@@ -534,10 +539,46 @@ function showInfoForm(player) {
   const form = new ActionFormData();
   form.title("\u5173\u4E8E");
   form.body(
-    "MuoniumPlayer \u57FA\u5CA9\u7248\uFF08\u7EAF\u5BA2\u6237\u7AEF\uFF09\n\xB7 \u66F2\u5E93\u968F\u5305\u9884\u5BFC\u5165\uFF0C\u65AD\u7F51\u53EF\u64AD\n\xB7 \u4E0D\u5199\u670D\u52A1\u7AEF\u4EE3\u7801\u3001\u4E0D\u505A\u8DE8\u73A9\u5BB6\u540C\u6B65\u3001\u4E0D\u8BFB\u53D6 Floodgate/Geyser\n\xB7 \u6682\u505C / \u8FDB\u5EA6 / seek / \u5B8C\u6210\u4E8B\u4EF6\u5747\u4E3A UNKNOWN\uFF0C\u6682\u4E0D\u5B9E\u73B0\u5047\u529F\u80FD\n\xB7 \u8FDC\u7A0B\u4EFB\u610F\u97F3\u9891\u65E0\u6CD5\u76F4\u63A5\u5582\u7ED9\u57FA\u5CA9\u58F0\u97F3\u7CFB\u7EDF\n\xB7 \u5728\u804A\u5929\u8F93\u5165 !muonium \u6216 !music \u6253\u5F00\u672C\u83DC\u5355"
+    "MuoniumPlayer \u57FA\u5CA9\u7248\uFF08\u7EAF\u5BA2\u6237\u7AEF\uFF09\n\xB7 \u66F2\u5E93\u968F\u5305\u9884\u5BFC\u5165\uFF0C\u65AD\u7F51\u53EF\u64AD\n\xB7 \u4E0D\u5199\u670D\u52A1\u7AEF\u4EE3\u7801\u3001\u4E0D\u505A\u8DE8\u73A9\u5BB6\u540C\u6B65\u3001\u4E0D\u8BFB\u53D6 Floodgate/Geyser\n\xB7 \u6682\u505C / \u8FDB\u5EA6 / seek / \u5B8C\u6210\u4E8B\u4EF6\u5747\u4E3A UNKNOWN\uFF0C\u6682\u4E0D\u5B9E\u73B0\u5047\u529F\u80FD\n\xB7 \u8FDC\u7A0B\u4EFB\u610F\u97F3\u9891\u65E0\u6CD5\u76F4\u63A5\u5582\u7ED9\u57FA\u5CA9\u58F0\u97F3\u7CFB\u7EDF\uFF1BQQ \u97F3\u4E50\u8D70\u684C\u9762\u7AEF\u5BFC\u5165\n\xB7 QQ \u97F3\u4E50\u4E3A\u300C\u975E\u5B98\u65B9\u3001\u4E2A\u4EBA\u4F7F\u7528\u300D\u96C6\u6210\uFF1A\u57FA\u5CA9\u7AEF\u4EC5\u6536\u96C6 songmid \u5E76\u63D0\u793A\u684C\u9762\u5BFC\u5165\u547D\u4EE4\n\xB7 \u5728\u804A\u5929\u8F93\u5165 !muonium \u6216 !music \u6253\u5F00\u672C\u83DC\u5355"
   );
   form.button("\u5173\u95ED");
   form.show(player).catch((e) => console.warn(`[muonium] \u5173\u4E8E\u8868\u5355\u5F02\u5E38: ${String(e)}`));
+}
+function parseSongmid(input) {
+  if (!input) return null;
+  const trimmed = input.trim();
+  if (/^[A-Za-z0-9_]+$/.test(trimmed)) return trimmed;
+  const m = trimmed.match(/(?:songmid|mid)=([A-Za-z0-9_]+)/i);
+  return m ? m[1] ?? null : null;
+}
+function showQQForm(player) {
+  const form = new ModalFormData();
+  form.title("\u5BFC\u5165 QQ \u97F3\u4E50\uFF08\u4E2A\u4EBA\u4F7F\u7528\uFF09");
+  form.textField(
+    "QQ \u97F3\u4E50\u5206\u4EAB\u94FE\u63A5\u6216 songmid\uFF08\u57FA\u5CA9\u7AEF\u9700\u684C\u9762\u5BFC\u5165\uFF1A\u63D0\u4EA4\u540E\u7ED9\u51FA\u684C\u9762\u547D\u4EE4\uFF09",
+    "\u7C98\u8D34\u5206\u4EAB\u94FE\u63A5\uFF0C\u6216\u5F62\u5982 003XXXX \u7684 songmid"
+  );
+  form.show(player).then((response) => {
+    if (response.canceled) return;
+    const raw = response.formValues?.[0] ?? "";
+    const mid = parseSongmid(raw);
+    if (mid === null) {
+      report(player, "\xA7c\u65E0\u6CD5\u8BC6\u522B QQ \u97F3\u4E50 ID\uFF0C\u8BF7\u7C98\u8D34\u5206\u4EAB\u94FE\u63A5\u6216 songmid");
+      return;
+    }
+    try {
+      world2.setDynamicProperty("muonium:pending_qq_import", mid);
+      report(
+        player,
+        `\xA7a\u5DF2\u8BB0\u5F55 songmid=${mid}\u3002\u8BF7\u5728\u7535\u8111\u4E0A\u8FD0\u884C\uFF1A
+\xA7emuonium qqimport ${mid} --library <\u66F2\u5E93\u76EE\u5F55>\xA7a
+\u5B8C\u6210\u540E\u91CD\u8FDB\u4E16\u754C\u5373\u53EF\u5728\u300C\u672C\u5730\u66F2\u5E93\u300D\u64AD\u653E\u3002\u57FA\u5CA9\u7AEF\u4E0D\u76F4\u63A5\u6D41\u5F0F\u64AD\u653E\u8FDC\u7A0B\u97F3\u9891\u3002`
+      );
+    } catch (e) {
+      console.warn("[muonium] \u52A8\u6001\u5C5E\u6027\u5199\u5165\u5931\u8D25: " + String(e));
+      report(player, "\xA7c\u8BB0\u5F55\u5931\u8D25\uFF08\u52A8\u6001\u5C5E\u6027\u4E0D\u53EF\u7528\uFF09\uFF0C\u8BF7\u76F4\u63A5\u5728\u684C\u9762\u7AEF\u6267\u884C\u5BFC\u5165\u547D\u4EE4");
+    }
+  }).catch((e) => console.warn(`[muonium] QQ \u8868\u5355\u5F02\u5E38: ${String(e)}`));
 }
 
 // src/main.ts
@@ -558,25 +599,30 @@ function getSession(player) {
 }
 var ctx = { library, getSession };
 var OPEN_EVENT_ID = "muonium:open";
+var QQ_EVENT_ID = "muonium:qq";
 system.afterEvents.scriptEventReceive.subscribe((event) => {
-  if (event.id !== OPEN_EVENT_ID) return;
+  if (event.id !== OPEN_EVENT_ID && event.id !== QQ_EVENT_ID) return;
   const entity = event.sourceEntity ?? event.initiator;
   if (entity instanceof Player) {
-    showMainForm(entity, ctx);
+    if (event.id === QQ_EVENT_ID) {
+      showQQForm(entity);
+    } else {
+      showMainForm(entity, ctx);
+    }
   } else {
     console.warn("[muonium] \u8BE5\u811A\u672C\u4E8B\u4EF6\u6CA1\u6709\u53EF\u5173\u8054\u7684\u73A9\u5BB6\uFF0C\u8868\u5355\u672A\u6253\u5F00");
   }
 });
-world2.afterEvents.playerJoin.subscribe((event) => {
-  const player = world2.getPlayers().find((p) => p.id === event.playerId);
+world3.afterEvents.playerJoin.subscribe((event) => {
+  const player = world3.getPlayers().find((p) => p.id === event.playerId);
   if (player !== void 0) {
     player.sendMessage("\xA7a[MuoniumPlayer] \u8F93\u5165 /scriptevent muonium:open \u6253\u5F00\u97F3\u4E50\u64AD\u653E\u5668\uFF08\u7EAF\u5BA2\u6237\u7AEF\uFF0C\u65AD\u7F51\u53EF\u64AD\uFF09");
   }
 });
-world2.afterEvents.playerLeave.subscribe((event) => {
+world3.afterEvents.playerLeave.subscribe((event) => {
   sessions.delete(event.playerId);
 });
-world2.afterEvents.worldLoad.subscribe(() => {
+world3.afterEvents.worldLoad.subscribe(() => {
   console.warn(
     `[muonium] \u66F2\u5E93 ${library.tracks.length} \u9996\u5DF2\u52A0\u8F7D\uFF1B\u7EAF\u5BA2\u6237\u7AEF\uFF0C\u670D\u52A1\u7AEF\u65E0\u9700\u4EFB\u4F55\u914D\u5957\u4EF6\u3002\u534F\u8BAE\u7248\u672C ${library.protocolVersion}\uFF1B\u76EE\u6807\u6E38\u620F ${library.gameVersion}`
   );

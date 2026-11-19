@@ -7,6 +7,7 @@ description = "本机合法资源导入 / 校验 / ffprobe 探测 / OGG 转码 /
 
 dependencies {
     implementation(project(":common-core"))
+    implementation(project(":music-providers"))
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)

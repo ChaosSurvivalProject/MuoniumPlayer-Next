@@ -17,6 +17,7 @@ rootProject.name = "muonium-player-next"
 // 纯 JVM 模块：本环境可完整构建与测试，默认纳入 ./gradlew clean build test。
 include(":common-core")
 include(":common-schema")
+include(":music-providers")
 include(":music-import-cli")
 
 // Fabric Loom 需要下载 Minecraft 1.21.11 客户端 jar、映射与 assets，

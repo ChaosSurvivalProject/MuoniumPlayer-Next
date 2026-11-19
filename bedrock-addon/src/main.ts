@@ -2,7 +2,7 @@ import { world, system, Player } from "@minecraft/server";
 import { loadLibrary } from "./library";
 import { PlayQueue } from "./queue";
 import { loadSettings } from "./state";
-import { showMainForm, type UiContext, type SessionState } from "./ui";
+import { showMainForm, showQQForm, type UiContext, type SessionState } from "./ui";
 
 /**
  * 基岩行为包入口（@minecraft/server 2.4.0 / @minecraft/server-ui 2.0.0）。
@@ -35,12 +35,17 @@ function getSession(player: { readonly id: string }): SessionState {
 const ctx: UiContext = { library, getSession };
 
 const OPEN_EVENT_ID = "muonium:open";
+const QQ_EVENT_ID = "muonium:qq";
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
-    if (event.id !== OPEN_EVENT_ID) return;
+    if (event.id !== OPEN_EVENT_ID && event.id !== QQ_EVENT_ID) return;
     const entity = event.sourceEntity ?? event.initiator;
     if (entity instanceof Player) {
-        showMainForm(entity, ctx);
+        if (event.id === QQ_EVENT_ID) {
+            showQQForm(entity);
+        } else {
+            showMainForm(entity, ctx);
+        }
     } else {
         console.warn("[muonium] 该脚本事件没有可关联的玩家，表单未打开");
     }

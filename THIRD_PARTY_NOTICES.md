@@ -40,6 +40,18 @@
 | Fabric Loader / Fabric API / Yarn / Fabric Loom | 见 `gradle/libs.versions.toml` | 各自上游许可 | 仅 `fabric-1_21_11` 模块，运行时由用户自行安装 |
 | TypeScript / esbuild / `@minecraft/server` / `@minecraft/server-ui` | 见 `bedrock-addon/package.json` | 各自上游许可 | 仅 `bedrock-addon` 构建期与类型声明；不打包进 `.mcaddon` 之外的任何位置 |
 
+### QQ 音乐非官方集成（个人使用）
+
+- `music-providers` 的 `QQMusicMediaSource` / `QQMusicSign` 对接的是**社区维护的非官方接口**
+  （`musicu.fcg` 的 `vkey.GetVkeyServer`、`client_search_cp`、`fcg_query_lyric_new` 等），
+  签名算法 `md5(musicId + dataJson + musicKey)` 与固定 `musicId="zza"` 均为社区约定，
+  **非腾讯官方 API，未获授权**。本项目只实现调用结构与解析，**不复制任何第三方音源库的代码**。
+- `QQMusicSign.MUSIC_KEY` 是**占位符**，仓库中不含任何可用密钥；凭据由用户自备、只存本机，
+  不写入仓库/曲库/日志。详见 [docs/qq-music.md](docs/qq-music.md)。
+- 本集成**仅供个人使用**，不内置/再分发任何歌曲、封面、歌词等版权素材，不破解 DRM，
+  不批量下载或分享。是否使用由用户自行决定并承担相应责任。
+- 上游参考的 Cadence / qq-music-api 等第三方音源库（见 §2）仅作协议思路参考，**未引入代码或二进制**。
+
 ## 4. 素材
 
 - `test-fixtures/audio/*.ogg`：由 ffmpeg 在本仓库内**程序化生成的无版权正弦波/和弦测试音**，

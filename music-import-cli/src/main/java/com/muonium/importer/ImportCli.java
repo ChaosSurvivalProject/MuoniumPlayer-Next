@@ -41,6 +41,9 @@ public final class ImportCli {
                 case "probe" -> cmdProbe(args);
                 case "transcode" -> cmdTranscode(args);
                 case "pack" -> cmdPack(args);
+                case "qqsearch" -> QQMusicCli.search(args);
+                case "qqimport" -> QQMusicCli.importTrack(args);
+                case "qqlyric" -> QQMusicCli.lyric(args);
                 default -> { System.err.println("未知命令: " + cmd); printUsage(); yield 2; }
             };
         } catch (Exception e) {
@@ -57,7 +60,12 @@ public final class ImportCli {
                   probe <audio-file>                      用 ffprobe 探测时长(ms)
                   transcode <input> <output.ogg>          用 ffmpeg 转 OGG Vorbis
                   pack <BP目录> <RP目录> <out.mcaddon>    打包附加包（防路径穿越）
+                  qqsearch --query 关键词 [--cookie FILE] [--fake]   非官方 QQ 音乐搜索（个人使用）
+                  qqimport <songmid> [--cookie FILE] [--library DIR] [--name 标题] [--fake]
+                  qqlyric <songmid> [--cookie FILE] [--fake]
 
+                QQ 音乐为「非官方、仅供个人使用」集成：凭据仅来自 --cookie 文件或
+                环境变量 QQMUSIC_COOKIE，绝不写入仓库/曲库/日志。--fake 走合成响应，仅供自测。
                 环境变量 MUONIUM_FFMPEG / MUONIUM_FFPROBE 可指定可执行文件；
                 缺省从 PATH 查找。外部进程默认关闭，调用这些子命令即视为显式启用。
                 """);

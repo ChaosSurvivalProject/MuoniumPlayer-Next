@@ -18,6 +18,8 @@
 2. 把构建出的 Mod jar 放入 `mods/`。
 3. 启动客户端；曲库放在 `游戏目录/config/muonium/library/library.json` 指定的目录。
 4. 服务端**不需要安装任何东西**。
+5. （可选）QQ 音乐个人使用：用桌面导入器 `qqimport` 把曲目导入曲库，或用流式集成骨架；
+   需自备 Cookie，见 [qq-music.md](qq-music.md)。本仓库不含任何版权素材或凭据。
 
 ### 基岩端
 
@@ -57,7 +59,7 @@
 
 ## 6. 回滚方案
 
-- 每个模块可独立回滚：`common-core` / `common-schema` / `music-import-cli` /
+- 每个模块可独立回滚：`common-core` / `common-schema` / `music-providers` / `music-import-cli` /
   `fabric-1_21_11` / `bedrock-addon` 互不二进制耦合。
 - 数据格式带 `schemaVersion` 与 `configVersion`；`migration-rules.json` 记录逐版本规则，
   未来版本高于当前支持版本时**拒绝猜测**并抛错，可回退到上一版包。
@@ -80,7 +82,8 @@
 ## 8. 隐私政策要点
 
 - 不收集、不上传听歌历史；遥测与崩溃上报默认关闭且需明确同意。
-- 平台凭据（若阶段 6 导入器使用）只存本机、不进世界存档与资源包、不上传任何服务器。
+- QQ 音乐 Cookie 只从用户显式指定的文件 / 环境变量读取，只存本机内存，不进世界存档、资源包、
+  曲库清单、日志或仓库；`MuoniumError.redact()` 过滤 Cookie / Authorization / 票据 / 手机号。
 - 日志过滤 Cookie、Authorization、二维码票据与手机号。
 - 不执行远程下发脚本，不自动更新可执行代码。
 

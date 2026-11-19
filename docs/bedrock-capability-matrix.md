@@ -23,6 +23,8 @@
 | 远程 HTTP | `@minecraft/server-net` | Beta / BDS 专用 | — | — | `UNSUPPORTED` | 本项目明确不使用；曲库断网可播 |
 | 通用桌面文件系统 | 无 | — | — | — | `UNSUPPORTED` | 官方脚本无此类 API，基岩文件浏览器不做承诺 |
 | 任意远程 MP3 直喂声音系统 | 无 | — | — | — | `UNSUPPORTED` | 必须先由导入器合法获取、转码 OGG、生成声音事件并装入曲库包 |
+| QQ 音乐流式播放 | 非官方集成（个人使用） | 无 | — | — | `UNSUPPORTED` | 基岩端无法直接喂远程音频流；改用「桌面端 `muonium qqimport <songmid>` 导入到本地曲库」的伴随流程，见 [qq-music.md](qq-music.md) |
+| QQ 音乐导入表单 | `ModalFormData` + `world.setDynamicProperty` | 无 | 待测 | 待测 | `UNKNOWN` | 仅收集 songmid 并提示桌面端导入命令；不内联网、不下载；`/scriptevent muonium:qq` |
 
 ## 阶段 4 必须回答的 8 个问题（当前答案）
 

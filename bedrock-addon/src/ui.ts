@@ -1,5 +1,5 @@
-import { ActionFormData, type ActionFormResponse } from "@minecraft/server-ui";
-import type { Player } from "@minecraft/server";
+import { ActionFormData, ModalFormData, type ActionFormResponse } from "@minecraft/server-ui";
+import { world, type Player } from "@minecraft/server";
 import type { Library, Track } from "./library";
 import { findTrack } from "./library";
 import type { PlayQueue } from "./queue";
@@ -91,9 +91,11 @@ function doPrevious(player: Player, ctx: UiContext): void {
   doPlay(player, ctx, track);
 }
 
-enum MainAction { PLAY_FIRST = 0, STOP = 1, NEXT = 2, PREVIOUS = 3, LIBRARY = 4, MODE = 5, REPEAT = 6, VOLUME = 7, INFO = 8 }
+enum MainAction { PLAY_FIRST = 0, STOP = 1, NEXT = 2, PREVIOUS = 3, LIBRARY = 4, MODE = 5, REPEAT = 6, VOLUME = 7, QQ = 8, INFO = 9 }
 
 export function showMainForm(player: Player, ctx: UiContext): void {
+
+
   const session = ctx.getSession(player);
   const current = session.current;
   const form = new ActionFormData();
@@ -111,6 +113,7 @@ export function showMainForm(player: Player, ctx: UiContext): void {
   form.button(`播放模式：${session.settings.mode === "shuffle" ? "随机" : "顺序"}`);
   form.button(`循环：${repeatLabel(session.settings.repeat)}`);
   form.button(`音量：${Math.round(session.settings.volume * 100)}%`);
+  form.button("导入 QQ 音乐");
   form.button("关于 / 能力说明");
 
   form.show(player).then((response: ActionFormResponse) => {
@@ -136,6 +139,7 @@ export function showMainForm(player: Player, ctx: UiContext): void {
       }
       case MainAction.REPEAT: showRepeatForm(player, ctx); break;
       case MainAction.VOLUME: showVolumeForm(player, ctx); break;
+      case MainAction.QQ: showQQForm(player); break;
       case MainAction.INFO: showInfoForm(player); break;
       default: break;
     }
@@ -215,9 +219,54 @@ function showInfoForm(player: Player): void {
     "· 曲库随包预导入，断网可播\n" +
     "· 不写服务端代码、不做跨玩家同步、不读取 Floodgate/Geyser\n" +
     "· 暂停 / 进度 / seek / 完成事件均为 UNKNOWN，暂不实现假功能\n" +
-    "· 远程任意音频无法直接喂给基岩声音系统\n" +
+    "· 远程任意音频无法直接喂给基岩声音系统；QQ 音乐走桌面端导入\n" +
+    "· QQ 音乐为「非官方、个人使用」集成：基岩端仅收集 songmid 并提示桌面导入命令\n" +
     "· 在聊天输入 !muonium 或 !music 打开本菜单"
   );
   form.button("关闭");
   form.show(player).catch((e: unknown) => console.warn(`[muonium] 关于表单异常: ${String(e)}`));
+}
+
+/** 从分享链接或原始串中提取 QQ 音乐 songmid；无法识别返回 null。 */
+function parseSongmid(input: string): string | null {
+  if (!input) return null;
+  const trimmed = input.trim();
+  if (/^[A-Za-z0-9_]+$/.test(trimmed)) return trimmed;
+  const m = trimmed.match(/(?:songmid|mid)=([A-Za-z0-9_]+)/i);
+  return m ? (m[1] ?? null) : null;
+}
+
+/**
+ * 导入 QQ 音乐表单（基岩端）。
+ *
+ * <p>基岩版 Script API 无法把远程音频流直接喂给声音系统，也明确不使用 @minecraft/server-net，
+ * 因此这里只收集 songmid 并存入本世界动态属性，再提示玩家在<b>桌面端</b>用
+ * {@code muonium qqimport <songmid>} 完成下载与 OGG 转码，之后于本地曲库播放。
+ * 不内联网、不下载、不存储任何版权素材。
+ */
+export function showQQForm(player: Player): void {
+  const form = new ModalFormData();
+  form.title("导入 QQ 音乐（个人使用）");
+  form.textField(
+    "QQ 音乐分享链接或 songmid（基岩端需桌面导入：提交后给出桌面命令）",
+    "粘贴分享链接，或形如 003XXXX 的 songmid");
+  form.show(player).then((response: ActionFormResponse | any) => {
+    if (response.canceled) return;
+    const raw = ((response.formValues as Array<unknown> | undefined)?.[0] as string) ?? "";
+    const mid = parseSongmid(raw);
+    if (mid === null) {
+      report(player, "§c无法识别 QQ 音乐 ID，请粘贴分享链接或 songmid");
+      return;
+    }
+    try {
+      world.setDynamicProperty("muonium:pending_qq_import", mid);
+      report(player,
+        `§a已记录 songmid=${mid}。请在电脑上运行：\n` +
+        `§emuonium qqimport ${mid} --library <曲库目录>§a\n` +
+        `完成后重进世界即可在「本地曲库」播放。基岩端不直接流式播放远程音频。`);
+    } catch (e: unknown) {
+      console.warn("[muonium] 动态属性写入失败: " + String(e));
+      report(player, "§c记录失败（动态属性不可用），请直接在桌面端执行导入命令");
+    }
+  }).catch((e: unknown) => console.warn(`[muonium] QQ 表单异常: ${String(e)}`));
 }

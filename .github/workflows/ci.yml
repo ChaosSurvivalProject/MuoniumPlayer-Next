@@ -25,6 +25,7 @@ jobs:
           path: |
             common-core/build/reports/tests/test
             music-import-cli/build/reports/tests/test
+            music-providers/build/reports/tests/test
 
   addon:
     name: Bedrock Add-On 类型检查 / 打包 / 清单校验

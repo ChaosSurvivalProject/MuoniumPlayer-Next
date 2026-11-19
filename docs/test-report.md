@@ -8,11 +8,14 @@
 
 ## 1. JVM 侧（真实通过）
 
-命令（JDK `openjdk 21.0.12.1`）：
+命令（JDK `openjdk 21.0.12.1`；本机 Gradle 用 `/opt/gradle-9.8.0/bin/gradle`，
+并设 `GRADLE_USER_HOME=/root/.gradle`；**必须 Java 21**，否则 Loom 配置阶段失败）：
 
 ```bash
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-./gradlew clean build test checkClientOnly --no-daemon
+export PATH=$JAVA_HOME/bin:$PATH
+export GRADLE_USER_HOME=/root/.gradle
+/opt/gradle-9.8.0/bin/gradle -PincludeFabric=true build test checkClientOnly --console=plain
 ```
 
 | Gradle | 结果 |
@@ -20,7 +23,15 @@ export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 | 8.14.3 | `BUILD SUCCESSFUL`（中间修过 2 个真实错误，见 §6） |
 | **9.8.0（最终锁定）** | `BUILD SUCCESSFUL in 31s`，`checkClientOnly PASS` |
 
-**单元测试：71 个，0 失败，0 跳过**（从 `build/test-results/test/TEST-*.xml` 精确统计）：
+**单元测试：96 个，0 失败，0 跳过**（从 `build/test-results/test/TEST-*.xml` 精确统计）：
+
+| 模块 | 数量 | 说明 |
+|---|---|---|
+| `common-core` | 60 | 见下表 |
+| `music-import-cli` | 11 | `ImportCliTest` |
+| `music-providers` | 25 | QQ 音乐源 + 降级/清理（见 §1.1） |
+
+其中 `common-core` 的 60 个：
 
 | 测试类 | 数量 | 覆盖 |
 |---|---|---|
@@ -36,6 +47,19 @@ export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 | `SchemaCompatibilityTest` | 6 | Song/Playlist/Lyric JSON 往返、null 语义、资源名规则 |
 | `EventBusTest` | 4 | 订阅/取消/关闭、类型过滤、日志脱敏 |
 | `ImportCliTest` | 11 | 重复 ID/声音事件、路径穿越、凭据、临时 URL、许可证、CLI 真实文件 |
+
+### 1.1 QQ 音乐适配层测试（`music-providers`，25 个全绿）
+
+全用 Fake（合成 fixture），**不联网、不触碰任何真实版权内容**：
+
+| 测试类 | 数量 | 覆盖 |
+|---|---|---|
+| `QQMusicMediaSourceTest` | 6 | 搜索/歌单解析、vkey 直链、歌词 gzip+base64、导入、缺凭据 |
+| `LocalMediaSourceTest` | 3 | 本地曲库只读查询 |
+| `MediaSourceRegistryTest` | 3 | 注册/延迟构造/缺省源 |
+| `QQMusicAudioBackendTest` | 3 | 流式编排、能力 UNKNOWN 纪律、拒绝非 QQ 曲目 |
+| `QQMusicIntegrationTest` | 3 | 注册表/后端装配、uin 提取 |
+| `DegradationTest` | 7 | 401/403/429/5xx/404 错误码与 retryable、签名失败、下载/转码/后端拒绝三处临时文件清理 |
 
 `common-schema` 产物 jar 已核验包含 6 个 schema（song/playlist/queue/lyric/error-codes/migration-rules）。
 
@@ -66,7 +90,7 @@ cd bedrock-addon && npm ci && npm run check && cd ..
 |---|---|
 | `npm install` | 7 packages，5 s |
 | `tsc --noEmit`（strict / noImplicitAny / noUncheckedIndexedAccess / exactOptionalPropertyTypes） | **PASS** |
-| `esbuild` 打包 | `pack/behavior_pack/scripts/main.js` 21,721 bytes |
+| `esbuild` 打包 | `pack/behavior_pack/scripts/main.js` 24,230 bytes（新增 QQ 导入表单） |
 | `node --check` | `NODE_CHECK_OK` |
 
 严格类型检查过程中发现并修复的真实问题：
@@ -90,6 +114,9 @@ cd bedrock-addon && npm ci && npm run check && cd ..
 | `music-import-cli validate bedrock-addon/pack/behavior_pack/library.json` | `VALIDATE PASS: 1 首曲目` |
 | `music-import-cli probe test-fixtures/audio/test_tone.ogg` | `PROBE OK durationMs=5000` |
 | `music-import-cli transcode ... /tmp/muonium_transcoded.ogg` | `TRANSCODE OK`，ffprobe 复核 `5.000000` |
+| `qqsearch --query 测试 --fake` | 1 条合成结果（不联网） |
+| `qqlyric mid_abc --fake` | 2 行合成歌词 |
+| `qqimport mid_abc --library /tmp/lib --fake` | 生成 `track_mid_abc.ogg` + `library.json`（标题/歌手/专辑/时长/封面/`personal-use` 元数据齐全） |
 
 素材生成：`ffmpeg` 程序化生成 5 秒 440/554.37/659.25 Hz 和弦 OGG Vorbis 44.1 kHz 双声道
 （`codec_name=vorbis, sample_rate=44100, channels=2, duration=5.000000`）；
@@ -107,6 +134,9 @@ cd bedrock-addon && npm ci && npm run check && cd ..
 | 6 | `check-sound-events.mjs` 检查「不合并」但文件写「禁止合并」 | 修正断言字符串 |
 | 7 | `fabric-loom 1.19.3` 要求 Gradle ≥9.8.0 且 JVM ≥25 | 锁定 `fabric-loom 1.17.21`（JVM 21）+ Gradle 9.8.0 |
 | 8 | Loom Kotlin DSL `sourceSet(sourceSets.main)` 类型不匹配（Provider vs SourceSet） | 改用 `sourceSet("main")` / `sourceSet("client")` 字符串重载；去掉不兼容的 `removeIf` |
+| 9 | 完整构建默认用 Java 20 JVM，Loom 1.17.21 要求 ≥21 而失败 | 显式 `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64` 后 BUILD SUCCESSFUL |
+| 10 | 默认 `java`/`cd` 在后台命令中不跨调用保持 | 每条命令内显式 `cd` 与 `export JAVA_HOME/PATH` |
+| 11 | `DegradationTest` 缺 `Song` import、`FakeAudioBackend` 为 final 无法匿名继承 | 补 import；给 Fake 加 `rejectPrepare` 标志而非继承 |
 
 ## 7. 未验证项（真实清单，禁止写成通过）
 
@@ -127,7 +157,7 @@ cd bedrock-addon && npm ci && npm run check && cd ..
 2. `playSound` 在 2.4.0 返回 `void`，无 SoundInstance；切歌为普通切歌，无 Automix。
 3. `/stopsound` 能否中断自定义声音未真机验证，失败时明确提示而非假装已停。
 4. Fabric HUD/键位为接口占位（`ui/UiHooks.java`），需 1.21.11 真机核实 API 后实现。
-5. 平台导入器（阶段 6）未实现，只完成本地文件导入与转码打包。
+5. QQ 音乐为**非官方、仅供个人使用**集成：`QQMusicSign.MUSIC_KEY` 为占位符，真实在线播放需用户自备 Cookie 并同步最新密钥并自行验证；真实在线检索/试听、Fabric 真机发声、基岩真机导入均未验证，见 [qq-music.md](qq-music.md)。
 6. Loom 那条 `Cannot remap modifiers` 警告未消除，需真机确认是否影响运行。
 
 ## 9. 回滚

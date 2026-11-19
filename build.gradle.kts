@@ -53,7 +53,7 @@ tasks.register("checkClientOnly") {
     group = "verification"
     description = "扫描源码中禁止出现的服务端/联机同步符号"
     doLast {
-        val roots = listOf("common-core", "common-schema", "music-import-cli", "fabric-1_21_11", "bedrock-addon")
+        val roots = listOf("common-core", "common-schema", "music-providers", "music-import-cli", "fabric-1_21_11", "bedrock-addon")
         val hits = mutableListOf<String>()
         roots.forEach { root ->
             fileTree(root) {

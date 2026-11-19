@@ -27,6 +27,8 @@ export const CAPABILITIES: readonly CapabilityRow[] = [
   { api: "同时声音上限", version: "待测", experiment: "待测", verdict: "UNKNOWN", note: "快速点击 50 次场景待测" },
   { api: "动态属性持久化", version: "world.setDynamicProperty", experiment: "无", verdict: "UNKNOWN", note: "稳定 API 存在，重进世界是否保留待测" },
   { api: "远程 HTTP", version: "@minecraft/server-net", experiment: "Beta / BDS 专用", verdict: "UNSUPPORTED", note: "本项目明确不使用；曲库断网可播" },
+  { api: "QQ 音乐流式播放", version: "非官方集成（个人使用）", experiment: "无", verdict: "UNSUPPORTED", note: "基岩端无法直接喂远程音频流；改用「桌面端 muonium qqimport <songmid> 导入到本地曲库」的伴随流程" },
+  { api: "QQ 音乐导入表单", version: "ModalFormData + world.setDynamicProperty", experiment: "无", verdict: "UNKNOWN", note: "仅收集 songmid 并提示桌面端导入命令；不内联网、不下载" },
 ] as const;
 
 /** 在真机矩阵填 SUPPORTED 之前，播放器不提供暂停/进度/seek 控件。 */

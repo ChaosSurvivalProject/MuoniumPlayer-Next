@@ -21,7 +21,7 @@
 Song/Playlist/Queue/Lyric 模型、JSON Schema 与迁移、9 态状态机、
 顺序/随机/循环/历史、歌词游标（O(log n)）、虚拟时钟、假音频后端、
 安全 JSON、缓存淘汰、重试退避、事件总线、错误模型。
-**71 个 JVM 测试全部通过，不启动 Minecraft。**
+**common-core 60 个 JVM 测试全部通过，不启动 Minecraft**（全仓含 providers/CLI 共 96 个）。
 
 ## 阶段 2：Fabric 本地音频 MVP — ⚠️ 部分（代码骨架，真机未验证）
 
@@ -52,12 +52,14 @@ LRC/QRC/TTML 解析已在 `common-core` 完成并有测试；UI 侧（逐字与�
 待做（真机）：Windows/Android 导入、第三方服务器联机听歌、音量 0、包未启用、
 歌曲文件缺失、快速点击 50 次、切换维度。
 
-## 阶段 6：平台导入器 — 📋 计划（仅骨架）
+## 阶段 6：平台导入器 — ⚠️ QQ 音乐已实现（个人使用），其余计划
 
 `music-import-cli` 已完成本地文件导入、ffprobe 探测、OGG 转码、校验、打包。
-待做：网易云/QQ 音乐适配器（独立模块）、用户主动授权、逐首许可证确认、
+QQ 音乐适配器已在独立模块 `music-providers` 实现（`qqsearch/qqlyric/qqimport` + Fabric 流式骨架），
+25 个测试全绿，详见 [qq-music.md](qq-music.md)。
+待做：网易云等其他音源适配器、用户主动授权、逐首许可证确认、
 Token 本机加密与一键清除、FFmpeg 缺失时只启用可处理格式。
-**不做**解灰、绕会员、破解、Cookie 上传。
+**不做**解灰、绕会员、破解、Cookie 上传、批量下载或内容再分发。
 
 ## 阶段 8：发布准备 — ⚠️ 文档完成，真机矩阵缺失
 
