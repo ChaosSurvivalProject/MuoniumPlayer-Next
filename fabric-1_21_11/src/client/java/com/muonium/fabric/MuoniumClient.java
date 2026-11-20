@@ -1,6 +1,7 @@
 package com.muonium.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
+import com.muonium.fabric.autoupdate.ClientUpdateChecker;
 
 /**
  * 唯一的 Minecraft 生命周期入口。
@@ -20,6 +21,14 @@ public final class MuoniumClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientRuntime runtime = ClientRuntime.getInstance();
         runtime.start();
+        // 内置更新：启动自检一次 + 每周四 12:00 定时检查（不改运行中的 jar，重启生效）。
+        try {
+            ClientUpdateChecker.fromMods(
+                    "https://raw.githubusercontent.com/ChaosSurvivalProject/MuoniumPlayer-Next/main/updates/latest.json",
+                    "0.1.0").start();
+        } catch (Throwable t) {
+            System.out.println("[Muonium] 更新模块初始化失败（不影响主功能）：" + t.getMessage());
+        }
 
         // 退出游戏时释放音频设备、线程与临时文件；不留下后台进程。
         Runtime.getRuntime().addShutdownHook(new Thread(runtime::stop, "muonium-shutdown"));

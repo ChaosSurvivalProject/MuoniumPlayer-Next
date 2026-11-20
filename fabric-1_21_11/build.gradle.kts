@@ -8,7 +8,7 @@ plugins {
 
 description = "Minecraft Java 1.21.11 / Fabric / Java 21 纯客户端音乐 Mod"
 
-val modVersion = "0.1.0"
+val modVersion = "0.1.1"
 
 loom {
     splitEnvironmentSourceSets()
